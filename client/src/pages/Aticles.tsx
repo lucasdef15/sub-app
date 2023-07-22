@@ -1,3 +1,5 @@
+import { Container } from 'react-bootstrap';
+
 export default function Aticles() {
-  return <div>articles</div>;
+  return <Container>articles</Container>;
 }

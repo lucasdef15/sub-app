@@ -1,25 +1,13 @@
 import { Modal, Button, InputGroup, FormControl } from 'react-bootstrap';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../../context/userContext';
 
 interface ModalProps {
   text: string;
   variant: 'primary' | 'secondary' | 'danger';
-}
-interface ErrorObject {
-  msg: string;
-}
-interface ApiResponse {
-  data?: {
-    token?: string;
-    user?: {
-      id: string;
-      email: string;
-    };
-  };
-  errors?: ErrorObject[];
 }
 
 const ErrorMessage = styled.p`
@@ -32,25 +20,38 @@ export default function ModalComponent({ text, variant }: ModalProps) {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string>('');
 
+  const [state, setState] = useContext(UserContext);
+
   const navigate = useNavigate();
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
   const handleClick = async () => {
-    const response = await axios.post<ApiResponse>(
+    const data = await axios.post(
       `http://localhost:8080/auth/${text.toLowerCase()}`,
       {
         email,
         password,
       }
     );
-    const data = response.data;
+    const response = data.data;
 
-    if (data && data.errors && data.errors.length) {
-      return setErrorMsg(data.errors[0].msg);
-    } else if (data && data.data) {
-      localStorage.setItem('token', JSON.stringify(data.data.token));
+    if (response && response.errors && response.errors.length) {
+      return setErrorMsg(response.errors[0].msg);
+    } else if (response && response.data) {
+      setState({
+        data: {
+          id: response.data.id,
+          email: response.data.email,
+        },
+        loading: false,
+        error: null,
+      });
+      localStorage.setItem('token', JSON.stringify(response.data.token));
+      axios.defaults.headers.common[
+        'authorization'
+      ] = `Bearer ${response.data.token}`;
       navigate('articles');
     }
   };

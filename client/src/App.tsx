@@ -11,12 +11,15 @@ import Articles from './pages/Aticles';
 
 // layouts
 import RootLayout from './layouts/RootLayout';
+import { ProtectedRoutes } from './routes/ProtectedRoutes';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<RootLayout />}>
       <Route index element={<LadingPage />} />
-      <Route path='articles' element={<Articles />} />
+      <Route path='articles' element={<ProtectedRoutes />}>
+        <Route index element={<Articles />} />
+      </Route>
     </Route>
   )
 );

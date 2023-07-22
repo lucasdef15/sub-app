@@ -1,8 +1,9 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import User from '../models/user';
 import bcrypt from 'bcryptjs';
 import JWT from 'jsonwebtoken';
+import { checkAuth } from '../middleware/checkAuth';
 
 const router = express.Router();
 
@@ -120,6 +121,27 @@ router.post('/login', async (req, res) => {
       },
     },
   });
+});
+
+interface UserObject {
+  _id: string;
+  email: string;
+}
+
+router.get('/me', checkAuth, async (req, res) => {
+  const user: UserObject | null = await User.findOne({ email: req.user });
+
+  if (user) {
+    return res.json({
+      errors: [],
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+        },
+      },
+    });
+  }
 });
 
 export default router;
